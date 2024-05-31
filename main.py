@@ -57,11 +57,11 @@ class App(customtkinter.CTk):
         # Bottom bar
         
         # Command entry field
-        self.entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
-        self.entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+        self.command_entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
+        self.command_entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
         # Command send
-        self.main_button_1 = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.send_command(1), text_color=("gray10", "#DCE4EE"))
-        self.main_button_1.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.send_command, text_color=("gray10", "#DCE4EE"))
+        self.command_send.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
 
         # MAIN CONTENT 
@@ -113,12 +113,17 @@ class App(customtkinter.CTk):
         print(f"Scaling set to {new_scaling}")
         customtkinter.set_widget_scaling(new_scaling_float)
         
-    def send_command(self, command):
-        #print(command) - doesnt work
-        #ser.write(command.encode()) - doesnt work
-        return
-
-
+    def send_command(self):
+        command = self.command_entry.get() # Take the command from the command_entry field
+        
+        if command == "":
+            pass
+        else:
+            print(command)
+            ser.write(command.encode()) # Encode and send command
+        
+        self.command_entry.delete(first_index=0, last_index=999999999)
+        self.command_send.focus_set()
 
 
 if __name__ == "__main__":
