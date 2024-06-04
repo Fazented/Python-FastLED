@@ -6,7 +6,7 @@ import serial
 # Change them based on your arduino configuration
 port = "COM3"
 baudRate = "9600"
-#todo - add try except for SerialException'
+#todo - add try except for SerialException
 
 # Set ser as serial port COM3 at 9600 baud rate
 ser = serial.Serial(port, baudRate)
@@ -67,7 +67,7 @@ class App(customtkinter.CTk):
         # MAIN CONTENT 
         
         # Main Colour Picker
-        self.colorpicker = CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.hex_to_rgb(e)) 
+        self.colorpicker = CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.hex_to_rgb(e))
         self.colorpicker.grid(row=0, column=1, padx=10, pady=10)
         
 
@@ -96,13 +96,13 @@ class App(customtkinter.CTk):
     def hex_to_rgb(self, hex):
         self.colourbutton.configure(border_color=hex)
         hex = hex.lstrip('#')
-        rgb = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+        rgb = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) #todo fix the formatting on this
         r = str(rgb[0])
         g = str(rgb[1])
         b = str(rgb[2])
         x = "[setRgb," + r + "," + g + "," + b + ",]"
         print(x)
-        ser.write(x.encode())
+        ser.write(x.encode()) # ! make this work if arduino isnt connected
     
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Set to {new_appearance_mode}")
@@ -116,7 +116,7 @@ class App(customtkinter.CTk):
     def send_command(self):
         command = self.command_entry.get() # Take the command from the command_entry field
         
-        if command == "":
+        if command == "": #todo make this detect commands and give feedback to the user, like 
             pass
         else:
             print(command)
