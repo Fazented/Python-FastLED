@@ -3,13 +3,27 @@ from CTkColorPicker import *
 from PIL import Image
 import serial
 
-# Change them based on your arduino configuration
+# Set to True to disable serial communication and enable debugging tools
+DebugMode = False 
+# todo - add debugging tools
+
+# Change these based on your arduino configuration
 port = "COM3"
 baudRate = "9600"
+
+# Set ser as serial port COM3 at 9600 baud rate, only if debug is disabled
+if DebugMode == False:
+    try:
+        ser = serial.Serial(port, baudRate)
+    except serial.serialutil.SerialException:
+        print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+        print(f"Port is set to {port}")
+        print(f"BaudRate is set to {baudRate}")
+else:
+    print("Running UI without serial communication. Set DebugMode to False to enable serial")
+
 #todo - add try except for SerialException
 
-# Set ser as serial port COM3 at 9600 baud rate
-ser = serial.Serial(port, baudRate)
 
 customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
@@ -93,17 +107,7 @@ class App(customtkinter.CTk):
 
     # add functions to app
 
-    def hex_to_rgb(self, hex):
-        self.colourbutton.configure(border_color=hex)
-        hex = hex.lstrip('#')
-        rgb = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) #todo fix the formatting on this
-        r = str(rgb[0])
-        g = str(rgb[1])
-        b = str(rgb[2])
-        x = "[setRgb," + r + "," + g + "," + b + ",]"
-        print(x)
-        ser.write(x.encode()) # ! make this work if arduino isnt connected
-    
+    # UI Functions
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Set to {new_appearance_mode}")
         customtkinter.set_appearance_mode(new_appearance_mode)
@@ -112,15 +116,46 @@ class App(customtkinter.CTk):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100
         print(f"Scaling set to {new_scaling}")
         customtkinter.set_widget_scaling(new_scaling_float)
+
+
+    # LED/Serial control functions
+    def hex_to_rgb(self, hex):
+        self.colourbutton.configure(border_color=hex)
+        hex = hex.lstrip('#')
+        rgb = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) #todo fix the formatting on this
+        r = str(rgb[0])
+        g = str(rgb[1])
+        b = str(rgb[2])
+        x = "[setRgb," + r + "," + g + "," + b + ",]"
+        if DebugMode == False:
+            try:
+                ser.write(x.encode())
+                print(x)
+            except NameError:
+                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+                print(f"Port is set to {port}")
+                print(f"BaudRate is set to {baudRate}")
+                print(f"Command Sent: {x}")
+        else:
+            print(f"{x}, Serial Disabled")
         
     def send_command(self):
         command = self.command_entry.get() # Take the command from the command_entry field
         
-        if command == "": #todo make this detect commands and give feedback to the user, like 
+        if command == "": #todo make this detect commands and give feedback to the user, like autocorrect
             pass
         else:
-            print(command)
-            ser.write(command.encode()) # Encode and send command
+            if DebugMode == False:
+                try:
+                    ser.write(command.encode()) # Encode and send command
+                    print(command)
+                except NameError:
+                    print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+                    print(f"Port is set to {port}")
+                    print(f"BaudRate is set to {baudRate}")
+                    print(f"Command Sent: {command}")
+            else:
+                print(f"{command}, Serial Disabled")
         
         self.command_entry.delete(first_index=0, last_index=999999999)
         self.command_send.focus_set()
