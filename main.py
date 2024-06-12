@@ -4,7 +4,7 @@ from PIL import Image
 import serial
 
 # Set to True to disable serial communication and enable debugging tools
-DebugMode = False 
+DebugMode = True 
 # todo - add debugging tools
 
 # Change these based on your arduino configuration
@@ -119,6 +119,19 @@ class App(customtkinter.CTk):
 
 
     # LED/Serial control functions
+
+    def send_serial(self, command):
+        try:
+            ser.write(command.encode())
+            print(command)
+        except NameError:
+            print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+
+        if DebugMode:
+            print(f"Port is set to {port}")
+            print(f"BaudRate is set to {baudRate}")
+            print(f"Command Sent: {command}")
+
     def hex_to_rgb(self, hex):
         self.colourbutton.configure(border_color=hex)
         hex = hex.lstrip('#')
@@ -126,18 +139,9 @@ class App(customtkinter.CTk):
         r = str(rgb[0])
         g = str(rgb[1])
         b = str(rgb[2])
-        x = "[setRgb," + r + "," + g + "," + b + ",]"
-        if DebugMode == False:
-            try:
-                ser.write(x.encode())
-                print(x)
-            except NameError:
-                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
-                print(f"Port is set to {port}")
-                print(f"BaudRate is set to {baudRate}")
-                print(f"Command Sent: {x}")
-        else:
-            print(f"{x}, Serial Disabled")
+        command = "[setRgb," + r + "," + g + "," + b + ",]"
+        self.send_serial(command)
+
         
     def send_command(self):
         command = self.command_entry.get() # Take the command from the command_entry field
@@ -145,21 +149,22 @@ class App(customtkinter.CTk):
         if command == "": #todo make this detect commands and give feedback to the user, like autocorrect
             pass
         else:
-            if DebugMode == False:
-                try:
-                    ser.write(command.encode()) # Encode and send command
-                    print(command)
-                except NameError:
-                    print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
-                    print(f"Port is set to {port}")
-                    print(f"BaudRate is set to {baudRate}")
-                    print(f"Command Sent: {command}")
-            else:
-                print(f"{command}, Serial Disabled")
+            self.send_serial(command)
         
         self.command_entry.delete(first_index=0, last_index=999999999)
         self.command_send.focus_set()
 
+
+
+
+
+
+
+
+        # def binaryEncode(value):
+            
+            
+            
 
 if __name__ == "__main__":
     app = App()
