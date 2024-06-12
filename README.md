@@ -5,7 +5,6 @@ CustomTkinter Python application to control arduino FastLED lights via serial
 
 #### To Do
 
-- [ ] Make serial work over binary
 - [ ] Add preset colours next to colour picker
 - [ ] Add tabs for colours, effects, and configuration
 - [ ] Add effects for adressable LEDs
@@ -13,6 +12,7 @@ CustomTkinter Python application to control arduino FastLED lights via serial
 - [ ] Add command feedback for custom command box
 - [ ] Add a help tab with all the commands that can be sent
 - [ ] Make the code simpler and laid out better, with seperate files
+- [ ] Make serial work over binary
 - [ ] vim keybinds >:)
 
 #### Ideas
