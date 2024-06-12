@@ -4,29 +4,33 @@ import serial
 
 # Set to True to disable serial communication and enable debugging tools
 DebugMode = True 
-# todo - add debugging tools
 
 # Change these based on your arduino configuration
 port = "COM5"
 baudRate = "115200"
 
-Num_LEDS = 14
+# Set this to the number of leds you have
+Num_LEDS = 14 
 
-# Set ser as serial port COM3 at 9600 baud rate, only if debug is disabled
+# Will make leds reset or stay the same if addressable leds are adressed
+reset_leds = True 
+
+customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
+
+
+
+# Set ser as serial port and baud rate, as defined above
 try:
     ser = serial.Serial(port, baudRate)
 except serial.serialutil.SerialException:
     print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
 
+# Prints debug infor if DebugMode is True
 if DebugMode:
     print(f"Port is set to {port}")
     print(f"BaudRate is set to {baudRate}")
-
-#todo - add try except for SerialException
-
-
-customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
-customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
+    print(f"Reset LEDs set to {reset_leds}")
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -81,13 +85,13 @@ class App(customtkinter.CTk):
         # MAIN CONTENT 
         
         # Main Colour Picker
-        self.colorpicker = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.hex_to_rgb(e))
+        self.colorpicker = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda hex: self.set_rgb(hex))
         self.colorpicker.grid(row=0, column=1, padx=10, pady=10)
         
-        self.colorpicker2 = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.individual(e))
+        self.colorpicker2 = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.set_individual(e))
         self.colorpicker2.grid(row=0, column=2, padx=10, pady=10)        
         
-        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS)
+        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.led_picker)
         self.ledslider.grid(row=0, column=3, padx=10, pady=10)
         
         self.button = customtkinter.CTkButton(self, text="test button 1", )
@@ -108,13 +112,17 @@ class App(customtkinter.CTk):
 #        self.button = customtkinter.CTkButton(self, text="test button 7", command=self.button_click)
 #        self.button.grid(row=2, column=2, padx=10, pady=10)
 
-    # add functions to app
+
+
+    # App Functions
+
 
     # UI Functions
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Set to {new_appearance_mode}")
         customtkinter.set_appearance_mode(new_appearance_mode)
     
+
     def change_scaling_event(self, new_scaling: str):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100
         print(f"Scaling set to {new_scaling}")
@@ -123,41 +131,70 @@ class App(customtkinter.CTk):
 
     # LED/Serial control functions
 
-    def send_serial(self, command):
+    # Serial Sending command, takes all the arguments for a command and sends them
+    def send_serial(self, command_type, prefix, r, g, b, brightness, led_num, reset):
+        # Checks if command is type 1, 2 or 3. Command 1 is rgb for all leds, command 2 is adressable leds, command 3 is just the command with brightness.
+        if command_type == 1: 
+            command = str(f"[{prefix},{r},{g},{b}]")
+        elif command_type == 2:
+            command = str(f"[{prefix},{r},{g},{b},{led_num},{reset}]")
+        elif command_type == 3:
+            command = str(f"[{prefix},{brightness}]")
+
         try:
             ser.write(command.encode())
         except NameError:
-            print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
-        
+            if DebugMode == False:
+                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+            else:
+                print("Serial Error, unable to send command.")
+
         if DebugMode:
             print(f"Port is set to {port}")
             print(f"BaudRate is set to {baudRate}")
             print(f"Command Sent: {command}")
+            print(f"Command Type")
 
-    def hex_to_rgb(self, hex):
+
+    # Sets all LEDs to rgb from the colour picker
+    def set_rgb(self, hex):
         self.colourbutton.configure(border_color=hex)
         hex = hex.lstrip('#')
+
+        # Sets up extra command values
+        command_type = 1
+        command_prefix = "RGB"            
+
+        # Converts hex to RGB and sets r, g, b values.
         r = int(hex[0:2], 16)
         g = int(hex[2:4], 16)
         b = int(hex[4:6], 16)
-        command = f"[RGB,{r},{g},{b}]"
-        self.send_serial(command)
-        
-    def individual(self, hex):
+
+        self.send_serial(command_type, command_prefix, r, g, b, False, False, False)
+
+
+    def set_individual(self, hex):
         hex = hex.lstrip('#')
-        rgb = tuple(int(hex[i:i+2], 16) for i in (0, 2, 4)) #todo fix the formatting on this
-        i = 10
-        r = str(rgb[0])
-        g = str(rgb[1])
-        b = str(rgb[2])
-        e = 1
-        command = "[Individual,"+ str(i) + "," + r + "," + g + "," + b + "," + str(e) + "]"
-        self.send_serial(command)
-        
-    def led_picker(self):
-        value = self.ledslider.get()
-        print(f"slider at {value}")
-        
+
+        # Sets up extra command variables
+        reset = reset_leds
+        led = str(int(self.ledslider.get()))
+        command_type = 2
+        command_prefix = "Individual"
+
+        # Converts hex to RGB and sets r, g, b values.
+        r = int(hex[0:2], 16)
+        g = int(hex[2:4], 16)
+        b = int(hex[4:6], 16)
+
+        self.send_serial(command_type, command_prefix, r, g, b, False, led, reset)
+    
+    # Gets position of the LED Slider - Need to make it only send 1 output
+    def led_picker(self, led_position):
+        #value = self.ledslider.get()
+        print(f"slider at {led_position}")
+
+    # Sends the command in the command box, bypasses send_serial function
     def send_command(self):
         command = self.command_entry.get() # Take the command from the command_entry field
         
@@ -167,14 +204,23 @@ class App(customtkinter.CTk):
             self.send_serial(command)
         
         self.command_entry.delete(first_index=0, last_index=999999999)
-        self.command_send.focus_set()
 
+        # Sends the serial command, prints debug info is DebugMode is True
+        try:
+            ser.write(command.encode())
+        except NameError:
+            if DebugMode == False:
+                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+            else:
+                print("Serial Error, unable to send command.")
 
+        if DebugMode:
+            print(f"Port is set to {port}")
+            print(f"BaudRate is set to {baudRate}")
+            print(f"Command Sent: {command}")
+            print(f"Command Type")
 
 
 if __name__ == "__main__":
-    try:
-        app = App()
-        app.mainloop()
-    finally:
-        ser.close()
+    app = App()
+    app.mainloop()
