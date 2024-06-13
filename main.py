@@ -73,10 +73,10 @@ class App(customtkinter.CTk):
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w") 
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
         # UI Scaling switcher
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=appfunctions.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
         # Appearance switcher
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light", "System"], command=self.change_appearance_mode_event)
+        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light", "System"], command=appfunctions.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 10))
         
         # Bottom bar
@@ -98,7 +98,7 @@ class App(customtkinter.CTk):
         self.colorpicker2 = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.set_individual(e))
         self.colorpicker2.grid(row=0, column=2, padx=10, pady=10)        
         
-        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.led_picker)
+        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=ledfunctions.led_picker)
         self.ledslider.grid(row=0, column=3, padx=10, pady=10)
         
         self.button = customtkinter.CTkButton(self, text="test button 1", )
@@ -119,21 +119,6 @@ class App(customtkinter.CTk):
 #        self.button = customtkinter.CTkButton(self, text="test button 7", command=self.button_click)
 #        self.button.grid(row=2, column=2, padx=10, pady=10)
 
-
-
-    # App Functions
-
-
-    # UI Functions
-    def change_appearance_mode_event(self, new_appearance_mode: str):
-        print(f"Appearance Set to {new_appearance_mode}")
-        customtkinter.set_appearance_mode(new_appearance_mode)
-    
-
-    def change_scaling_event(self, new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
-        print(f"Scaling set to {new_scaling}")
-        customtkinter.set_widget_scaling(new_scaling_float)
 
 
     # LED/Serial control functions

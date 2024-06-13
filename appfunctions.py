@@ -2,7 +2,6 @@ import customtkinter
 import CTkColorPicker
 import serial
 
-
 # Debug function, for when DebugMode is on
 def debug():
     print("App Functions Imported")
