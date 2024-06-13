@@ -1,23 +1,19 @@
-# Import other files and packages
 import customtkinter
 import CTkColorPicker
 import serial
 
-DebugMode = True # Set to True to enable debugging tools
+DebugMode = True  # Set to True to enable debugging tools
 
 # Change these based on your arduino configuration
 port = "COM5"
 baudRate = "115200"
 
-Num_LEDS = 14 # Set this to the number of leds you have
+Num_LEDS = 14  # Set this to the number of leds you have
 
-reset_leds = True # Will make leds reset or stay the same if addressable leds are adressed
+reset_leds = True  # Will make leds reset or stay the same if addressable leds are addressed
 
 customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
-
-
-
 
 # Set ser as serial port and baud rate, as defined above
 try:
@@ -25,15 +21,19 @@ try:
 except serial.serialutil.SerialException:
     print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
 
-# Prints debug infor if DebugMode is True
+previous_number = None  # Used for making LED picker smoother, sending fewer commands over serial
+
+# Prints debug info if DebugMode is True
 if DebugMode:
-    print(f"Port is set to {port}")
-    print(f"BaudRate is set to {baudRate}")
-    print(f"Reset LEDs set to {reset_leds}")
+    print(f"Port is set to: {port}")
+    print(f"BaudRate is set to: {baudRate}")
+    print(f"Reset LEDs set to: {reset_leds}")
+    print(f"Number of LEDs: {Num_LEDS}")
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.functions = AppFunctions(self)  # Create an instance of AppFunctions and pass App instance
         self.geometry("1200x600")
         self.minsize(400, 300)
         self.maxsize(1200, 850)
@@ -65,10 +65,10 @@ class App(customtkinter.CTk):
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w") 
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
         # UI Scaling switcher
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.functions.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
         # Appearance switcher
-        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light", "System"], command=self.change_appearance_mode_event)
+        self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light", "System"], command=self.functions.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 10))
         
         # Bottom bar
@@ -77,23 +77,23 @@ class App(customtkinter.CTk):
         self.command_entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
         self.command_entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
         # Command send
-        self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.send_command, text_color=("gray10", "#DCE4EE"))
+        self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.functions.send_command, text_color=("gray10", "#DCE4EE"))
         self.command_send.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
 
         # MAIN CONTENT 
         
         # Main Colour Picker
-        self.colorpicker = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda hex: self.set_rgb(hex))
+        self.colorpicker = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda hex: self.functions.set_rgb(hex))
         self.colorpicker.grid(row=0, column=1, padx=10, pady=10)
         
-        self.colorpicker2 = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.set_individual(e))
+        self.colorpicker2 = CTkColorPicker.CTkColorPicker(self, width=500, orientation="horizontal", command=lambda e: self.functions.set_individual(e))
         self.colorpicker2.grid(row=0, column=2, padx=10, pady=10)        
         
-        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.led_picker)
+        self.ledslider = customtkinter.CTkSlider(self, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.functions.led_picker)
         self.ledslider.grid(row=0, column=3, padx=10, pady=10)
 
-        self.button = customtkinter.CTkButton(self, text="test button 1", )
+        self.button = customtkinter.CTkButton(self, text="test button 1")
         self.button.grid(row=0, column=0, padx=20, pady=10)
 #
 #        self.button = customtkinter.CTkButton(self, text="test button 2", command=self.button_click)
@@ -111,22 +111,26 @@ class App(customtkinter.CTk):
 #        self.button = customtkinter.CTkButton(self, text="test button 7", command=self.button_click)
 #        self.button.grid(row=2, column=2, padx=10, pady=10)
 
-    # App Functions
+
+# Contains all the functions for the app to run
+class AppFunctions:
+    def __init__(self, app):
+        self.app = app
+
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Set to {new_appearance_mode}")
         customtkinter.set_appearance_mode(new_appearance_mode)
-    
+
     def change_scaling_event(self, new_scaling: str):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100
         print(f"Scaling set to {new_scaling}")
         customtkinter.set_widget_scaling(new_scaling_float)
 
-
     # LED/Serial control functions
 
     # Serial Sending command, takes all the arguments for a command and sends them
     def send_serial(self, command_type, prefix, r, g, b, brightness, led_num, reset):
-        # Checks if command is type 1, 2 or 3. Command 1 is rgb for all leds, command 2 is adressable leds, command 3 is just the command with brightness.
+        # Checks if command is type 1, 2 or 3. Command 1 is rgb for all leds, command 2 is addressable leds, command 3 is just the command with brightness.
         if command_type == 1: 
             command = str(f"[{prefix},{r},{g},{b}]")
         elif command_type == 2:
@@ -148,10 +152,9 @@ class App(customtkinter.CTk):
             print(f"Command Sent: {command}")
             print(f"Command Type: {command_type}")
 
-
     # Sets all LEDs to rgb from the colour picker
     def set_rgb(self, hex):
-        self.colourbutton.configure(border_color=hex)
+        self.app.colourbutton.configure(border_color=hex)
         hex = hex.lstrip('#')
 
         # Sets up extra command values
@@ -163,15 +166,14 @@ class App(customtkinter.CTk):
         g = int(hex[2:4], 16)
         b = int(hex[4:6], 16)
 
-        ledfunctions.send_serial(command_type, command_prefix, r, g, b, False, False, False)
-
+        self.send_serial(command_type, command_prefix, r, g, b, False, False, False)
 
     def set_individual(self, hex):
         hex = hex.lstrip('#')
 
         # Sets up extra command variables
         reset = reset_leds
-        led = str(int(self.ledslider.get()))
+        led = str(int(self.app.ledslider.get()))
         command_type = 2
         command_prefix = "Individual"
 
@@ -182,7 +184,6 @@ class App(customtkinter.CTk):
 
         self.send_serial(command_type, command_prefix, r, g, b, False, led, reset)
     
-
     # Gets position of the LED Slider - Need to make it only send 1 output
     def led_picker(self, led_position):
         global previous_number
@@ -193,17 +194,16 @@ class App(customtkinter.CTk):
             print(f"Slider is at position {led_position}")
             previous_number = led_position
 
-
     # Sends the command in the command box, bypasses send_serial function
     def send_command(self):
-        command = self.command_entry.get() # Take the command from the command_entry field
+        command = self.app.command_entry.get()  # Take the command from the command_entry field
         
-        if command == "": #todo make this detect commands and give feedback to the user, like autocorrect
+        if command == "":  # todo make this detect commands and give feedback to the user, like autocorrect
             pass
         else:
             self.send_serial(command)
 
-        self.command_entry.delete(first_index=0, last_index=999999999)
+        self.app.command_entry.delete(first_index=0, last_index=999999999)
 
         # Sends the serial command, prints debug info is DebugMode is True
         try:
