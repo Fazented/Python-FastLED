@@ -1,3 +1,7 @@
+# Import other files and packages
+import ledfunctions
+import appfunctions
+
 import customtkinter
 import CTkColorPicker
 import serial
@@ -19,6 +23,7 @@ customtkinter.set_appearance_mode("System")  # Modes: system (default), light, d
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
 
 
+previous_number = None
 
 # Set ser as serial port and baud rate, as defined above
 try:
@@ -28,6 +33,8 @@ except serial.serialutil.SerialException:
 
 # Prints debug infor if DebugMode is True
 if DebugMode:
+    appfunctions.debug()
+    ledfunctions.debug()
     print(f"Port is set to {port}")
     print(f"BaudRate is set to {baudRate}")
     print(f"Reset LEDs set to {reset_leds}")
@@ -153,7 +160,7 @@ class App(customtkinter.CTk):
             print(f"Port is set to {port}")
             print(f"BaudRate is set to {baudRate}")
             print(f"Command Sent: {command}")
-            print(f"Command Type")
+            print(f"Command Type: {command_type}")
 
 
     # Sets all LEDs to rgb from the colour picker
@@ -191,8 +198,14 @@ class App(customtkinter.CTk):
     
     # Gets position of the LED Slider - Need to make it only send 1 output
     def led_picker(self, led_position):
-        #value = self.ledslider.get()
-        print(f"slider at {led_position}")
+        global previous_number
+        led_position = int(led_position)
+
+        # Makes sure only one number is output to console
+        if led_position != previous_number:
+            print(f"Slider is at position {led_position}")
+            previous_number = led_position
+
 
     # Sends the command in the command box, bypasses send_serial function
     def send_command(self):
@@ -218,7 +231,7 @@ class App(customtkinter.CTk):
             print(f"Port is set to {port}")
             print(f"BaudRate is set to {baudRate}")
             print(f"Command Sent: {command}")
-            print(f"Command Type")
+            print(f"Command Type: Custom User Command")
 
 
 if __name__ == "__main__":
