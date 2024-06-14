@@ -8,7 +8,7 @@ DebugMode = True  # Set to True to enable debugging tools
 port = "/dev/ttyACM0"
 baudRate = "115200"
 
-Num_LEDS = 14  # Set this to the number of leds you have
+Num_LEDS = 14 - 1  # Set this to the number of leds you have, -1 is because i wrote the arduino code wrong
 
 reset_leds = True  # Will make leds reset or stay the same if addressable leds are addressed
 
@@ -61,6 +61,9 @@ class App(customtkinter.CTk):
 
         # Other Sidebar Components
 
+        # LED off button
+        self.led_off_button = customtkinter.CTkButton(self.sidebar_frame, text="LEDs Off", anchor="w", command=self.functions.leds_off)
+        self.led_off_button.grid(row=5, column=0, padx=20, pady=(10, 0))
         # UI Scaling switcher label
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w") 
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
@@ -177,6 +180,7 @@ class App(customtkinter.CTk):
 class AppFunctions:
     def __init__(self, app):
         self.app = app
+        self.slider_command = None
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         print(f"Appearance Set to {new_appearance_mode}")
@@ -216,6 +220,7 @@ class AppFunctions:
             print(f"Command Sent: {command}")
             print(f"Command Type: {command_type}")
 
+
     # Sets all LEDs to rgb from the colour picker
     def set_rgb(self, hex):
         self.app.colourbutton.configure(border_color=hex)
@@ -232,6 +237,7 @@ class AppFunctions:
 
         self.send_serial(command_type, command_prefix, r, g, b, False, False, False)
 
+
     def set_individual(self, hex):
         hex = hex.lstrip('#')
 
@@ -246,9 +252,12 @@ class AppFunctions:
         g = int(hex[2:4], 16)
         b = int(hex[4:6], 16)
 
-        self.send_serial(command_type, command_prefix, r, g, b, False, led, reset)
-    
-    # Gets position of the LED Slider - Need to make it only send 1 output
+        self.slider_command = [command_type, command_prefix, r, g, b, False, led, reset]
+
+        self.send_serial(command_type, command_prefix, r, g, b, True, led, reset)
+
+
+    # Gets position of the LED Slider
     def led_picker(self, led_position):
         global previous_number
         led_position = int(led_position)
@@ -257,6 +266,22 @@ class AppFunctions:
         if led_position != previous_number:
             print(f"Slider is at position {led_position}")
             previous_number = led_position
+            # print(f"Slider Command: {self.slider_command}")
+
+            if self.slider_command is not None:
+                self.slider_command[6] = led_position
+                print(self.slider_command)
+                self.send_serial(self.slider_command[0], self.slider_command[1], self.slider_command[2], self.slider_command[3], self.slider_command[4], self.slider_command[5], self.slider_command[6], self.slider_command[7])
+            else:
+                if DebugMode:
+                    print(f"Individual LED command is not set. Currently {self.slider_command}")
+
+
+    def leds_off(self):
+        if DebugMode:
+            print("LED off was switched")
+        self.send_serial(2, "RGB", 0, 0, 0, False, False, False)
+
 
     # Sends the command in the command box, bypasses send_serial function
     def send_command(self):
