@@ -16,10 +16,10 @@ customtkinter.set_appearance_mode("System")  # Modes: system (default), light, d
 customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), dark-blue, green
 
 # Set ser as serial port and baud rate, as defined above
-#try:
-ser = serial.Serial(port, baudRate)
-#except serial.serialutil.SerialException:
-#    print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+try:
+    ser = serial.Serial(port, baudRate)
+except serial.serialutil.SerialException:
+    print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
 
 previous_number = None  # Used for making LED picker smoother, sending fewer commands over serial
 
@@ -34,11 +34,11 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.functions = AppFunctions(self)  # Create an instance of AppFunctions and pass App instance
-        self.geometry("1200x675")
+        self.geometry("1000x675")
         #self.minsize(400, 300)
         #self.maxsize(1200, 850)
         self.title("PyLED")
-        
+
         # Window Layout
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -49,30 +49,24 @@ class App(customtkinter.CTk):
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
-
         # Sidebar logo frame
         self.logo_frame = customtkinter.CTkFrame(self.sidebar_frame, width=100, fg_color="#212121", corner_radius=0)
         self.logo_frame.grid(row=0, column=0, sticky="nsew")
-
         # Sidebar title
         self.logo_label = customtkinter.CTkLabel(self.logo_frame, text="PyLED", font=customtkinter.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=1, padx=0, pady=(10, 10))
-
         # Sidebar logo (its just a button lol)
         self.colourbutton = customtkinter.CTkButton(self.logo_frame, width=30, border_width=6, corner_radius=10, state="disabled", text=" ", fg_color="transparent")
         self.colourbutton.grid(row=0, column=0, padx=(35, 10), pady=10)
-        
 
-        # Sidebar Components
-        
+        # Other Sidebar Components
+
         # UI Scaling switcher label
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w") 
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
-
         # UI Scaling switcher
         self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.functions.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-
         # Appearance switcher
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Dark", "Light", "System"], command=self.functions.change_appearance_mode_event)
         self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 10))
@@ -83,10 +77,10 @@ class App(customtkinter.CTk):
         # Command entry field
         self.command_entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
         self.command_entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
-
         # Command send
         self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.functions.send_command, text_color=("gray10", "#DCE4EE"))
         self.command_send.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+
 
 
         # MAIN CONTENT 
@@ -100,31 +94,80 @@ class App(customtkinter.CTk):
         self.tabview.add("RGB Control")
         self.tabview.add("Addressable Control")
         self.tabview.add("Effects")
+        self.tabview.add("Artnet Input")
         self.tabview.add("Config")
         self.tabview.add("Help")
+
         self.tabview.set("RGB Control")
 
 
-        # Main Tab (RGB Control) content
+        # Main Tab 1 (RGB Control) content
         tab1 = self.tabview.tab("RGB Control")
         tab1.grid_columnconfigure((0, 1, 2), weight=1)
         tab1.grid_rowconfigure(0, weight=1)
 
         self.colorpicker = CTkColorPicker.CTkColorPicker(tab1, width=500, orientation="horizontal", command=lambda hex: self.functions.set_rgb(hex))
-        self.colorpicker.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        self.colorpicker2 = CTkColorPicker.CTkColorPicker(tab1, width=500, orientation="horizontal", command=lambda e: self.functions.set_individual(e))
-        self.colorpicker2.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-        self.ledslider = customtkinter.CTkSlider(tab1, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.functions.led_picker)
-        self.ledslider.grid(row=0, column=2, padx=10, pady=10, sticky="ns")
+        self.colorpicker.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
 
         # Tab 2 (Addressable Control) content 
-        self.label_tab2 = customtkinter.CTkLabel(self.tabview.tab("Addressable Control"), text="Addressable Control Tab")
-        self.label_tab2.pack(padx=20, pady=20)
-        self.button_tab2 = customtkinter.CTkButton(self.tabview.tab("Addressable Control"), text="Test Button, but again")
-        self.button_tab2.pack(padx=20, pady=10)
 
-        # Tab 3 (Effects) Control
+        tab2 = self.tabview.tab("Addressable Control")
+        tab2.grid_columnconfigure((0, 1, 2), weight=1)
+        tab2.grid_rowconfigure(0, weight=1)
 
+        self.individual_picker = CTkColorPicker.CTkColorPicker(tab2, width=500, orientation="horizontal", command=lambda e: self.functions.set_individual(e))
+        self.individual_picker.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        self.ledslider = customtkinter.CTkSlider(tab2, from_=0, to=Num_LEDS, orientation="vertical", height=500, width=25, number_of_steps=Num_LEDS, command=self.functions.led_picker)
+        self.ledslider.grid(row=0, column=2, padx=10, pady=10, sticky="ns")
+
+
+        # Tab 3 (Effects) content
+
+        tab3 = self.tabview.tab("Effects")
+        tab3.grid_columnconfigure((0, 1, 2), weight=1)
+        tab3.grid_rowconfigure(0, weight=1)
+
+        self.label_tab3 = customtkinter.CTkLabel(tab3, text="Effects Tab")
+        self.label_tab3.pack(padx=20, pady=20)
+        self.button_tab3 = customtkinter.CTkButton(tab3, text="Test Button, but again")
+        self.button_tab3.pack(padx=20, pady=10)
+
+
+        # Tab 4 (Artnet Input) content
+
+        tab4 = self.tabview.tab("Artnet Input")
+        tab4.grid_columnconfigure((0, 1, 2), weight=1)
+        tab4.grid_rowconfigure(0, weight=1)
+
+        self.label_tab4 = customtkinter.CTkLabel(tab4, text="Artnet Input Tab")
+        self.label_tab4.pack(padx=20, pady=20)
+        self.button_tab4 = customtkinter.CTkButton(tab4, text="Test Button, but again")
+        self.button_tab4.pack(padx=20, pady=10)
+
+
+        # Tab 5 (Config) content
+
+        tab5 = self.tabview.tab("Config")
+        tab5.grid_columnconfigure((0, 1, 2), weight=1)
+        tab5.grid_rowconfigure(0, weight=1)
+
+        self.label_tab5 = customtkinter.CTkLabel(tab5, text="Config Tab")
+        self.label_tab5.pack(padx=20, pady=20)
+        self.button_tab5 = customtkinter.CTkButton(tab5, text="Test Button, but again")
+        self.button_tab5.pack(padx=20, pady=10)
+
+
+        # Tab 6 (Help) content
+
+        tab6 = self.tabview.tab("Help")
+        tab6.grid_columnconfigure((0, 1, 2), weight=1)
+        tab6.grid_rowconfigure(0, weight=1)
+
+        self.label_tab6 = customtkinter.CTkLabel(tab6, text="Help Tab")
+        self.label_tab6.pack(padx=20, pady=20)
+        self.button_tab6 = customtkinter.CTkButton(tab6, text="Test Button, but again")
+        self.button_tab6.pack(padx=20, pady=10)
 
 
 
@@ -152,7 +195,10 @@ class AppFunctions:
         if command_type == 1: 
             command = str(f"[{prefix},{r},{g},{b}]")
         elif command_type == 2:
-            command = str(f"[{prefix},{r},{g},{b},{led_num},{reset}]")
+            if reset:
+                command = str(f"[{prefix},{r},{g},{b},{led_num},1]")
+            else:
+                command = str(f"[{prefix},{r},{g},{b},{led_num},0]")
         elif command_type == 3:
             command = str(f"[{prefix},{brightness}]")
 

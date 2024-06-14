@@ -90,7 +90,7 @@ void processCommands()
         {
             setRgb();
         }
-        else if (strcmp(cmdName, "Individual") == 0)
+        else if (strcmp(cmdName, "I") == 0)
         {
             Individual();
         }
@@ -112,10 +112,10 @@ void setRgb()
 // Sets the Individual RGB values for the LEDs
 void Individual()
 {
-  byte i = atoi(strtok(NULL, "," ));
   byte r = atoi(strtok(NULL, ","));
   byte g = atoi(strtok(NULL, ","));
   byte b = atoi(strtok(NULL, ","));
+  byte i = atoi(strtok(NULL, "," ));
   byte e = atoi(strtok(NULL, ","));
   if (e == 1);
   {
