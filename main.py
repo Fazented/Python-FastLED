@@ -19,7 +19,7 @@ customtkinter.set_default_color_theme("dark-blue")  # Themes: blue (default), da
 try:
     ser = serial.Serial(port, baudRate)
 except serial.serialutil.SerialException:
-    print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+    print("Serial Error, make sure port and Baudrate is set right, or enable DebugMode")
 
 previous_number = None  # Used for making LED picker smoother, sending fewer commands over serial
 
@@ -60,6 +60,21 @@ class App(customtkinter.CTk):
         self.colourbutton.grid(row=0, column=0, padx=(35, 10), pady=10)
 
         # Other Sidebar Components
+
+        # self.tabs_frame = customtkinter.CTkFrame(self, width=80, fg_color="#4a4a49", corner_radius=10)
+        # self.tabs_frame.grid(row=0, column=0, sticky="s")
+
+        # self.tab_button = customtkinter.CTkButton(self.tabs_frame, text="RGB Control", anchor="w")
+        # self.tab_button.grid(row=0,column=0, padx=5, pady=(5, 0))
+
+        # self.tab_button2 = customtkinter.CTkButton(self.tabs_frame, text="Addressable Control", fg_color="#4a4a49", hover_color="#696969", anchor="w")
+        # self.tab_button2.grid(row=1,column=0, padx=5, pady=(5, 0))
+
+        # self.tab_button3 = customtkinter.CTkButton(self.tabs_frame, text="Effects", fg_color="#4a4a49", hover_color="#696969", anchor="w")
+        # self.tab_button3.grid(row=2,column=0, padx=5, pady=(5, 0))
+
+        # self.tab_button4 = customtkinter.CTkButton(self.tabs_frame, text="Settings", fg_color="#4a4a49", hover_color="#696969", anchor="w")
+        # self.tab_button4.grid(row=3,column=0, padx=5, pady=(5, 5))
 
         # LED off button
         self.led_off_button = customtkinter.CTkButton(self.sidebar_frame, text="LEDs Off", anchor="w", command=self.functions.leds_off)
@@ -171,9 +186,6 @@ class App(customtkinter.CTk):
         self.label_tab6.pack(padx=20, pady=20)
         self.button_tab6 = customtkinter.CTkButton(tab6, text="Test Button, but again")
         self.button_tab6.pack(padx=20, pady=10)
-
-
-
 
 
 # Contains all the functions for the app to run
