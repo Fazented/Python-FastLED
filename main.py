@@ -8,7 +8,9 @@ DebugMode = True  # Set to True to enable debugging tools
 port = "/dev/ttyACM0"
 baudRate = "115200"
 
-Num_LEDS = 14 - 1  # Set this to the number of leds you have, -1 is because i wrote the arduino code wrong
+Num_LEDS = 14 # Set this to the number of leds you have
+Num_LEDS = Num_LEDS - 1  # this -1 is because i wrote the arduino code wrong
+# i should probably fix this...
 
 reset_leds = True  # Will make leds reset or stay the same if addressable leds are addressed
 
@@ -34,9 +36,9 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.functions = AppFunctions(self)  # Create an instance of AppFunctions and pass App instance
-        self.geometry("800x650")
-        #self.minsize(400, 300)
-        #self.maxsize(1200, 850)
+        self.geometry("700x575")
+        self.minsize(700, 575)
+        self.maxsize(700, 575)
         self.title("PyLED")
 
         # Window Layout
@@ -90,14 +92,14 @@ class App(customtkinter.CTk):
         self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 10))
 
         
-        # Bottom bar
+        # Bottom bar (likely being removed)
         
-        # Command entry field
-        self.command_entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
-        self.command_entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
-        # Command send
-        self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.functions.send_command, text_color=("gray10", "#DCE4EE"))
-        self.command_send.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        # # Command entry field
+        # self.command_entry = customtkinter.CTkEntry(self, placeholder_text="Enter Serial Command")
+        # self.command_entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+        # # Command send
+        # self.command_send = customtkinter.CTkButton(master=self, text="Send", fg_color="transparent", border_width=2, command=self.functions.send_command, text_color=("gray10", "#DCE4EE"))
+        # self.command_send.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
 
 
 
@@ -125,31 +127,31 @@ class App(customtkinter.CTk):
         tab1.grid_rowconfigure(0, weight=1)
 
         self.colorpicker = CTkColorPicker.CTkColorPicker(tab1, width=500, orientation="horizontal", command=lambda hex: self.functions.set_rgb(hex))
-        self.colorpicker.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.colorpicker.grid(row=0, column=0, padx=10, pady=(10,0), sticky="nsew")
 
 
         self.colour_buttons = customtkinter.CTkFrame(tab1, width=100, corner_radius=0)
         self.colour_buttons.grid(row=0, column=1, sticky="n")
 
-        self.red_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Red", fg_color="#ff1e02", hover_color="#7e2e00")
-        self.red_button.grid(row=0, column=0, pady=(120, 5), sticky="nsw")
+        self.red_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff1e02", hover_color="#7e2e00")
+        self.red_button.grid(row=0, column=0, pady=(90, 5), sticky="nsw")
 
-        self.orange_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Orange", fg_color="#ff8208", hover_color="#b25b00")
+        self.orange_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff8208", hover_color="#b25b00")
         self.orange_button.grid(row=1, column=0, pady=5, sticky="nsw")
 
-        self.yellow_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Yellow", fg_color="#ffff00", hover_color="#b2b200")
+        self.yellow_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffff00", hover_color="#b2b200")
         self.yellow_button.grid(row=2, column=0, pady=5, sticky="nsw")
 
-        self.green_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Green", fg_color="#37f600", hover_color="#00a918")
+        self.green_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#37f600", hover_color="#00a918")
         self.green_button.grid(row=3, column=0, pady=5, sticky="nsw")
 
-        self.blue_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Blue", fg_color="#0282ff", hover_color="#005bb2")
+        self.blue_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#0282ff", hover_color="#005bb2")
         self.blue_button.grid(row=4, column=0, pady=5, sticky="nsw")
 
-        self.purple_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Purple", fg_color="#7403ff", hover_color="#762a7d")
+        self.purple_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#7403ff", hover_color="#762a7d")
         self.purple_button.grid(row=5, column=0, pady=5, sticky="nsw")
 
-        self.white_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="White", fg_color="#ffffff", hover_color="#b2b2b0")
+        self.white_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffffff", hover_color="#b2b2b0")
         self.white_button.grid(row=6, column=0, pady=5, sticky="nsw")
 
 
