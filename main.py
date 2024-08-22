@@ -34,7 +34,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.functions = AppFunctions(self)  # Create an instance of AppFunctions and pass App instance
-        self.geometry("1000x675")
+        self.geometry("800x650")
         #self.minsize(400, 300)
         #self.maxsize(1200, 850)
         self.title("PyLED")
@@ -121,11 +121,36 @@ class App(customtkinter.CTk):
 
         # Main Tab 1 (RGB Control) content
         tab1 = self.tabview.tab("RGB Control")
-        tab1.grid_columnconfigure((0, 1, 2), weight=1)
+        tab1.grid_columnconfigure((0, 1), weight=0)
         tab1.grid_rowconfigure(0, weight=1)
 
         self.colorpicker = CTkColorPicker.CTkColorPicker(tab1, width=500, orientation="horizontal", command=lambda hex: self.functions.set_rgb(hex))
-        self.colorpicker.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        self.colorpicker.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+
+        self.colour_buttons = customtkinter.CTkFrame(tab1, width=100, corner_radius=0)
+        self.colour_buttons.grid(row=0, column=1, sticky="n")
+
+        self.red_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Red", fg_color="#ff1e02", hover_color="#7e2e00")
+        self.red_button.grid(row=0, column=0, pady=(120, 5), sticky="nsw")
+
+        self.orange_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Orange", fg_color="#ff8208", hover_color="#b25b00")
+        self.orange_button.grid(row=1, column=0, pady=5, sticky="nsw")
+
+        self.yellow_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Yellow", fg_color="#ffff00", hover_color="#b2b200")
+        self.yellow_button.grid(row=2, column=0, pady=5, sticky="nsw")
+
+        self.green_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Green", fg_color="#37f600", hover_color="#00a918")
+        self.green_button.grid(row=3, column=0, pady=5, sticky="nsw")
+
+        self.blue_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Blue", fg_color="#0282ff", hover_color="#005bb2")
+        self.blue_button.grid(row=4, column=0, pady=5, sticky="nsw")
+
+        self.purple_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="Purple", fg_color="#7403ff", hover_color="#762a7d")
+        self.purple_button.grid(row=5, column=0, pady=5, sticky="nsw")
+
+        self.white_button = customtkinter.CTkButton(self.colour_buttons, text_color="Black", text="White", fg_color="#ffffff", hover_color="#b2b2b0")
+        self.white_button.grid(row=6, column=0, pady=5, sticky="nsw")
 
 
         # Tab 2 (Addressable Control) content 
