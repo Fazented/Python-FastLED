@@ -1,6 +1,7 @@
 import customtkinter
 import CTkColorPicker
 import serial
+from tkfontawesome import icon_to_image
 
 DebugMode = True  # Set to True to enable debugging tools
 
