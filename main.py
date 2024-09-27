@@ -134,25 +134,25 @@ class App(customtkinter.CTk):
         self.colour_buttons = customtkinter.CTkFrame(tab1, width=100, corner_radius=0)
         self.colour_buttons.grid(row=0, column=1, sticky="n")
 
-        self.red_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff1e02", hover_color="#7e2e00")
+        self.red_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff1e02", hover_color="#7e2e00", command=self.functions.red_preset)
         self.red_button.grid(row=0, column=0, pady=(90, 5), sticky="nsw")
 
-        self.orange_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff8208", hover_color="#b25b00")
+        self.orange_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ff8208", hover_color="#b25b00", command=self.functions.orange_preset)
         self.orange_button.grid(row=1, column=0, pady=5, sticky="nsw")
 
-        self.yellow_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffff00", hover_color="#b2b200")
+        self.yellow_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffff00", hover_color="#b2b200", command=self.functions.yellow_preset)
         self.yellow_button.grid(row=2, column=0, pady=5, sticky="nsw")
 
-        self.green_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#37f600", hover_color="#00a918")
+        self.green_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#37f600", hover_color="#00a918", command=self.functions.green_preset)
         self.green_button.grid(row=3, column=0, pady=5, sticky="nsw")
 
-        self.blue_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#0282ff", hover_color="#005bb2")
+        self.blue_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#0282ff", hover_color="#005bb2", command=self.functions.blue_preset)
         self.blue_button.grid(row=4, column=0, pady=5, sticky="nsw")
 
-        self.purple_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#7403ff", hover_color="#762a7d")
+        self.purple_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#7403ff", hover_color="#762a7d", command=self.functions.purple_preset)
         self.purple_button.grid(row=5, column=0, pady=5, sticky="nsw")
 
-        self.white_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffffff", hover_color="#b2b2b0")
+        self.white_button = customtkinter.CTkButton(self.colour_buttons, text=" ", width=27, fg_color="#ffffff", hover_color="#b2b2b0", command=self.functions.white_preset)
         self.white_button.grid(row=6, column=0, pady=5, sticky="nsw")
 
 
@@ -233,18 +233,64 @@ class AppFunctions:
 
     # LED/Serial control functions
 
-    # Serial Sending command, takes all the arguments for a command and sends them
-    def send_serial(self, command_type, prefix, r, g, b, brightness, led_num, reset):
-        # Checks if command is type 1, 2 or 3. Command 1 is rgb for all leds, command 2 is addressable leds, command 3 is just the command with brightness.
-        if command_type == 1: 
-            command = str(f"[{prefix},{r},{g},{b}]")
-        elif command_type == 2:
-            if reset:
-                command = str(f"[{prefix},{r},{g},{b},{led_num},1]")
+    # Sends RGB values to the arduino
+    def send_rgb(self, prefix, r, g, b):
+        command_type = "RGB"
+        command = str(f"[{prefix}, {r},{g},{b}]")
+        
+        try:
+            ser.write(command.encode())
+        except NameError:
+            if DebugMode == False:
+                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
             else:
-                command = str(f"[{prefix},{r},{g},{b},{led_num},0]")
-        elif command_type == 3:
-            command = str(f"[{prefix},{brightness}]")
+                print("Serial Error, unable to send command.")
+        
+        if DebugMode:
+            print(f"Port is set to {port}")
+            print(f"BaudRate is set to {baudRate}")
+            print(f"Command Sent: {command}")
+            print(f"Command Type: {command_type}")
+         
+    # sends a preset command, for animations like "rainbow" etc
+    def send_preset(self, preset):
+        command_type = "Preset"
+        command = str(f"[{preset}]")
+        
+        try:
+            ser.write(command.encode())
+        except NameError:
+            if DebugMode == False:
+                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
+            else:
+                print("Serial Error, unable to send command.")
+        
+        if DebugMode:
+            print(f"Port is set to {port}")
+            print(f"BaudRate is set to {baudRate}")
+            print(f"Command Sent: {command}")
+            print(f"Command Type: {command_type}")
+
+    # Sets all LEDs to rgb from the colour picker
+    def set_rgb(self, hex):
+        self.app.colourbutton.configure(border_color=hex)
+        hex = hex.lstrip('#')
+
+        command_prefix = "RGB"            
+
+        # Converts hex to RGB and sets rgb values.
+        r = int(hex[0:2], 16)
+        g = int(hex[2:4], 16)
+        b = int(hex[4:6], 16)
+
+        self.send_rgb(command_prefix, r, g, b)
+
+    # Sends serial to an individual LED and resets others depending if reset = true or false
+    def send_individual(self, prefix, r, g, b, led_num, reset):
+        if reset:
+            command = str(f"[{prefix},{r},{g},{b},{led_num},1]")
+        else:
+            command = str(f"[{prefix},{r},{g},{b},{led_num},0]")
 
         try:
             ser.write(command.encode())
@@ -258,46 +304,26 @@ class AppFunctions:
             print(f"Port is set to {port}")
             print(f"BaudRate is set to {baudRate}")
             print(f"Command Sent: {command}")
-            print(f"Command Type: {command_type}")
 
-
-    # Sets all LEDs to rgb from the colour picker
-    def set_rgb(self, hex):
-        self.app.colourbutton.configure(border_color=hex)
-        hex = hex.lstrip('#')
-
-        # Sets up extra command values
-        command_type = 1
-        command_prefix = "RGB"            
-
-        # Converts hex to RGB and sets r, g, b values.
-        r = int(hex[0:2], 16)
-        g = int(hex[2:4], 16)
-        b = int(hex[4:6], 16)
-
-        self.send_serial(command_type, command_prefix, r, g, b, False, False, False)
-
-
+    # takes hex code from the colour picker and sends it to the send_individual function
     def set_individual(self, hex):
         hex = hex.lstrip('#')
 
         # Sets up extra command variables
         reset = reset_leds
         led = str(int(self.app.ledslider.get()))
-        command_type = 2
-        command_prefix = "I"
+        command_prefix = "I" # I means Individual
 
         # Converts hex to RGB and sets r, g, b values.
         r = int(hex[0:2], 16)
         g = int(hex[2:4], 16)
         b = int(hex[4:6], 16)
 
-        self.slider_command = [command_type, command_prefix, r, g, b, False, led, reset]
+        self.slider_command = [command_prefix, r, g, b, led, reset]
 
-        self.send_serial(command_type, command_prefix, r, g, b, True, led, reset)
+        self.send_individual(command_prefix, r, g, b, led, reset)
 
-
-    # Gets position of the LED Slider
+    # The individual LED picker. takes a position from the slider and updates the set_individual command with an LED address
     def led_picker(self, led_position):
         global previous_number
         led_position = int(led_position)
@@ -309,47 +335,57 @@ class AppFunctions:
             # print(f"Slider Command: {self.slider_command}")
 
             if self.slider_command is not None:
-                self.slider_command[6] = led_position
+                self.slider_command[5] = led_position
                 print(self.slider_command)
-                self.send_serial(self.slider_command[0], self.slider_command[1], self.slider_command[2], self.slider_command[3], self.slider_command[4], self.slider_command[5], self.slider_command[6], self.slider_command[7])
+                self.send_individual(self.slider_command[0], self.slider_command[1], self.slider_command[2], self.slider_command[3], self.slider_command[4], self.slider_command[5])
             else:
                 if DebugMode:
                     print(f"Individual LED command is not set. Currently {self.slider_command}")
 
+    # Preset colour buttons
+    def red_preset(self):
+        self.send_rgb("RGB", 255, 0, 0)
+        if DebugMode:
+            print("Red Preset Selected")
 
+    def orange_preset(self):
+        self.send_rgb("RGB", 255, 127, 0)
+        if DebugMode:
+            print("Orange Preset Selected")
+
+    def yellow_preset(self):
+        self.send_rgb("RGB", 255, 255, 0)
+        if DebugMode:
+            print("Yellow Preset Selected")
+
+    def green_preset(self):
+        self.send_rgb("RGB", 0, 255, 0)
+        if DebugMode:
+            print("Green Preset Selected")
+
+    def blue_preset(self):
+        self.send_rgb("RGB", 0, 0, 255)
+        if DebugMode:
+            print("Blue Preset Selected")
+
+    def purple_preset(self):
+        self.send_rgb("RGB", 200, 0, 255)
+        if DebugMode:
+            print("Purple Preset Selected")
+
+    def white_preset(self):
+        self.send_rgb("RGB", 255, 255, 255)
+        if DebugMode:
+            print("White Preset Selected")
+
+
+    # Sets LEDs to off
     def leds_off(self):
         if DebugMode:
             print("LED off was switched")
-        self.send_serial(2, "RGB", 0, 0, 0, False, False, False)
+        self.send_rgb(0, 0, 0)
 
-
-    # Sends the command in the command box, bypasses send_serial function
-    def send_command(self):
-        command = self.app.command_entry.get()  # Take the command from the command_entry field
-        
-        if command == "":  # todo make this detect commands and give feedback to the user, like autocorrect
-            pass
-        else:
-            self.send_serial(command)
-
-        self.app.command_entry.delete(first_index=0, last_index=999999999)
-
-        # Sends the serial command, prints debug info is DebugMode is True
-        try:
-            ser.write(command.encode())
-        except NameError:
-            if DebugMode == False:
-                print("Serial Error, make sure \"port\" and \"BaudRate\" is set right, or enable DebugMode")
-            else:
-                print("Serial Error, unable to send command.")
-
-        if DebugMode:
-            print(f"Port is set to {port}")
-            print(f"BaudRate is set to {baudRate}")
-            print(f"Command Sent: {command}")
-            print(f"Command Type: Custom User Command")
-
-
+# Main App loop
 if __name__ == "__main__":
     app = App()
     app.mainloop()
