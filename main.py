@@ -1,7 +1,8 @@
 import customtkinter
 import CTkColorPicker
 import serial
-from tkfontawesome import icon_to_image
+import time
+#from tkfontawesome import icon_to_image
 
 DebugMode = True  # Set to True to enable debugging tools
 
@@ -80,8 +81,8 @@ class App(customtkinter.CTk):
         # self.tab_button4.grid(row=3,column=0, padx=5, pady=(5, 5))
 
         # LED off button
-        self.led_off_button = customtkinter.CTkButton(self.sidebar_frame, text="LEDs Off", anchor="w", command=self.functions.leds_off)
-        self.led_off_button.grid(row=5, column=0, padx=20, pady=(10, 0))
+        self.testcolours = customtkinter.CTkButton(self.sidebar_frame, text="Test LEDs", anchor="w", command=self.functions.leds_test)
+        self.testcolours.grid(row=5, column=0, padx=20, pady=(10, 0))
         # UI Scaling switcher label
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w") 
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
@@ -129,8 +130,7 @@ class App(customtkinter.CTk):
 
         self.colorpicker = CTkColorPicker.CTkColorPicker(tab1, width=500, orientation="horizontal", command=lambda hex: self.functions.set_rgb(hex))
         self.colorpicker.grid(row=0, column=0, padx=10, pady=(10,0), sticky="nsew")
-
-
+        
         self.colour_buttons = customtkinter.CTkFrame(tab1, width=100, corner_radius=0)
         self.colour_buttons.grid(row=0, column=1, sticky="n")
 
@@ -379,11 +379,29 @@ class AppFunctions:
             print("White Preset Selected")
 
 
-    # Sets LEDs to off
-    def leds_off(self):
+    # Tests each colour of the leds 5 times
+    def leds_test(self):
         if DebugMode:
-            print("LED off was switched")
-        self.send_rgb(0, 0, 0)
+            print("Test Colours selected!")
+
+        presets = [
+            self.red_preset,
+            self.orange_preset,
+            self.yellow_preset,
+            self.green_preset,
+            self.blue_preset,
+            self.purple_preset,
+            self.white_preset
+        ]
+    
+        for _ in range(5):  # Loop 5 times
+            for preset in presets:
+                preset()  # Call the preset method
+                time.sleep(0.5)
+
+        self.send_rgb("RGB", 0, 0, 0) #Turns LEDs off after button pressed
+
+
 
 # Main App loop
 if __name__ == "__main__":
